@@ -1,8 +1,10 @@
-const ENDPOINT = "https://models.inference.ai.azure.com/chat/completions";
+const ENDPOINT = "https://models.github.ai/inference/chat/completions";
 
 /**
  * Calls the GitHub Models inference endpoint.
  * Requires VITE_GITHUB_TOKEN in your .env file.
+ * The token must have the "models:read" permission (fine-grained PAT)
+ * or be a classic PAT (no scope needed for models).
  *
  * @param {object} model - Model object with `id` field
  * @param {Array}  history - Array of {role, content} message objects
@@ -22,6 +24,8 @@ export async function callModel(model, history) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
@@ -34,7 +38,7 @@ export async function callModel(model, history) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    throw new Error(err?.error?.message || err?.message || `HTTP ${res.status}`);
   }
 
   const data = await res.json();
